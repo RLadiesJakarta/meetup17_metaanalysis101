@@ -1,0 +1,68 @@
+library(readstata13)
+library(haven)
+library(metafor)
+
+```{r}
+dat <- read.dta13("dat.bcg.dta")
+print(dat, row.names=FALSE)
+```
+
+### calculate log risk ratios and corresponding sampling
+### variances and put into the object dat
+
+```{r}
+dat <- escalc(measure="RR", ai=tpos, bi=tneg, ci=cpos, di=cneg,
+              data=dat.bcg)
+```
+
+
+# Print the dataset print
+```{r}
+
+print(dat,row.names=FALSE)
+```
+```{r}
+# random effects model
+REmodel1 <-rma(yi , vi, dat=dat, method="DL")
+
+print(REmodel1)
+```
+
+```{r}
+# Convert back to RR
+exp(c(REmodel1$beta, REmodel1$ci.lb, REmodel1$ci.ub))
+```
+
+```{r}
+# Forest plot
+forest(REmodel1, transf=exp)
+```
+
+
+### fit random-effects model in the three subgroups
+# Systematic allocation
+
+```{r}
+res.s <- rma(ai=tpos, bi=tneg, ci=cpos, di=cneg, data=dat.bcg,
+             measure="RR", subset=(alloc=="systematic"), method="DL")
+print(res.s)
+exp(c(res.s$beta, res.s$ci.lb, res.s$ci.ub))
+```
+# Random allocation
+```{r}
+res.r <- rma(ai=tpos, bi=tneg, ci=cpos, di=cneg, data=dat.bcg,
+             measure="RR",subset=(alloc=="random"), method="DL")
+print(res.r)
+exp(c(res.r$beta, res.r$ci.lb, res.r$ci.ub))
+```
+# Alternation
+```{r}
+res.a <- rma(ai=tpos, bi=tneg, ci=cpos, di=cneg, data=dat.bcg,
+             measure="RR",subset=(alloc=="alternate"), method="DL")
+print(res.a)
+
+exp(c(res.a$beta, res.a$ci.lb, res.a$ci.ub))
+```
+
+
+                 
